@@ -3,12 +3,12 @@ defmodule ManifoldTest do
   doctest Manifold
 
   test "many pids" do
-    me = self
+    me = self()
     message = :hello
     pids = for _ <- 0..10000 do
       spawn fn ->
         receive do
-          message -> send(me, {self, message})
+          message -> send(me, {self(), message})
         end
       end
     end

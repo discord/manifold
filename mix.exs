@@ -8,7 +8,8 @@ defmodule Manifold.Mixfile do
       elixir: "~> 1.3",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
@@ -21,5 +22,18 @@ defmodule Manifold.Mixfile do
 
   defp deps do
     []
+  end
+
+  def package do
+    [
+      name: :manifold,
+      description: "Fast semaphore using ETS.",
+      maintainers: [],
+      licenses: ["MIT"],
+      files: ["lib/*", "mix.exs", "README*", "LICENSE*"],
+      links: %{
+        "GitHub" => "https://github.com/hammerandchisel/manifold",
+      },
+    ]
   end
 end
