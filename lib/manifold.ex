@@ -32,8 +32,6 @@ defmodule Manifold do
       end)
       |> Enum.each(fn
         {nil, _pids} -> :ok
-        # When not running in distributed mode, this should make things function.
-        {:nonode@nohost, pids} -> Partitioner.send(Partitioner, pids, message)
         {node, pids} -> Partitioner.send({Partitioner, node}, pids, message)
       end)
   end
