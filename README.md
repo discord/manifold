@@ -5,7 +5,7 @@
 
 Erlang and Elixir make it very easy to send messages between processes even across the network, but there are a few pitfalls.
 
-- Sending a message to many PIDs accross the network also copies the message across the network that many times.
+- Sending a message to many PIDs across the network also copies the message across the network that many times.
 - Send calls cost about 70 µs/op so doing them in a loop eventually gets too expensive.
 
 [Discord](https://discordapp.com) runs a single `GenServer` per Discord server and some of these have over 30,000 PIDs connected
@@ -35,7 +35,7 @@ defp deps do
 end
 ```
 
-Then just use it like the normal `send/2` except it can also take an list of PIDs.
+Then just use it like the normal `send/2` except it can also take a list of PIDs.
 
 ```elixir
 Manifold.send(self(), :hello)
