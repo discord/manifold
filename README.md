@@ -1,6 +1,6 @@
 # Manifold
 
-[![Master](https://travis-ci.org/hammerandchisel/manifold.svg?branch=master)](https://travis-ci.org/hammerandchisel/manifold)
+[![Master](https://travis-ci.org/discordapp/manifold.svg?branch=master)](https://travis-ci.org/discordapp/manifold)
 [![Hex.pm Version](http://img.shields.io/hexpm/v/manifold.svg?style=flat)](https://hex.pm/packages/manifold)
 
 Erlang and Elixir make it very easy to send messages between processes even across the network, but there are a few pitfalls.

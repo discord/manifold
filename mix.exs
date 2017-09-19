@@ -32,7 +32,7 @@ defmodule Manifold.Mixfile do
       licenses: ["MIT"],
       files: ["lib/*", "mix.exs", "README*", "LICENSE*"],
       links: %{
-        "GitHub" => "https://github.com/hammerandchisel/manifold",
+        "GitHub" => "https://github.com/discordapp/manifold",
       },
     ]
   end
