@@ -1,6 +1,8 @@
 defmodule Manifold.Worker do
   use GenServer
 
+  @gen_module Application.get_env(:manifold, :gen_module, GenServer)
+
   ## Client
 
   @spec start_link :: GenServer.on_start
@@ -10,7 +12,7 @@ defmodule Manifold.Worker do
 
   @spec send(pid, [pid], term) :: :ok
   def send(pid, pids, message) do
-    GenServer.cast(pid, {:send, pids, message})
+    @gen_module.cast(pid, {:send, pids, message})
   end
 
   ## Server Callbacks
