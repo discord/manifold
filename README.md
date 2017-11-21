@@ -42,6 +42,17 @@ Manifold.send(self(), :hello)
 Manifold.send([self(), self()], :hello)
 ```
 
+### Configuration
+Manifold takes a single configuration option, which sets the module it dispatches to to actually call send. The default
+is GenServer. To set this variable, add the following to your `config.exs`:
+
+```elixir
+config :manifold, gen_module: MyGenModule
+```
+
+In the above instance, `MyGenModule` must define a `send/2` function that matches the types of `GenServer.send`.
+
+
 ## License
 
 Manifold is released under [the MIT License](LICENSE).
