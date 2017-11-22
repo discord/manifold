@@ -3,10 +3,9 @@ language: elixir
 git:
   depth: 3
 elixir:
-  - 1.3.2
-  - 1.4.2
+  - 1.5.2
 otp_release:
-  - 19.0
+  - 20.1
 env:
   - MIX_ENV=test
 script:
