@@ -5,6 +5,8 @@ defmodule Manifold.Partitioner do
 
   alias Manifold.{Worker, Utils}
 
+  @gen_module Application.get_env(:manifold, :gen_module, GenServer)
+
   ## Client
 
   @spec child_spec(Keyword.t) :: tuple
@@ -20,7 +22,7 @@ defmodule Manifold.Partitioner do
 
   @spec send(pid, [pid], term) :: :ok
   def send(pid, pids, message) do
-    GenServer.cast(pid, {:send, pids, message})
+    @gen_module.cast(pid, {:send, pids, message})
   end
 
   ## Server Callbacks
