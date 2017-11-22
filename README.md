@@ -50,7 +50,7 @@ is GenServer. To set this variable, add the following to your `config.exs`:
 config :manifold, gen_module: MyGenModule
 ```
 
-In the above instance, `MyGenModule` must define a `send/2` function that matches the types of `GenServer.send`.
+In the above instance, `MyGenModule` must define a `cast/2` function that matches the types of `GenServer.cast`.
 
 
 ## License
