@@ -4,8 +4,8 @@ defmodule Manifold.Mixfile do
   def project do
     [
       app: :manifold,
-      version: "1.0.0",
-      elixir: "~> 1.3",
+      version: "1.1.0",
+      elixir: "~> 1.5",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps(),
