@@ -11,7 +11,7 @@ defmodule Manifold.Utils do
   @spec group_by([pid], key_fun, groups) :: groups
   def group_by([pid | pids], key_fun, groups) do
     key = key_fun.(pid)
-    group = Map.get(groups, key) || []
+    group = Map.get(groups, key, [])
     group_by(pids, key_fun, Map.put(groups, key, [pid | group]))
   end
   def group_by([], _key_fun, groups), do: groups
