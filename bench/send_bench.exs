@@ -4,9 +4,7 @@ defmodule SendBench do
   alias Manifold.Utils
 
   setup_all do
-    pids = for _ <- 0..14 do
-      spawn_link &loop/0
-    end
+    pids = for _ <- 0..200, do: spawn_link &loop/0
 
     {:ok, pids}
   end

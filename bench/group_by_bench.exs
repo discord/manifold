@@ -4,10 +4,7 @@ defmodule GroupByBench do
   alias Manifold.Utils
 
   setup_all do
-    pids = for _ <- 0..5000 do
-      spawn_link &loop/0
-    end
-
+    pids = for _ <- 0..5000, do: spawn_link &loop/0
     {:ok, pids}
   end
 
