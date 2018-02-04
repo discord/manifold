@@ -8,7 +8,6 @@ defmodule GroupByBench do
       spawn_link &loop/0
     end
 
-    {:ok, _} = Manifold.Partitioner.start_link(8, name: Manifold.Partitioner)
     {:ok, pids}
   end
 
@@ -18,12 +17,12 @@ defmodule GroupByBench do
     end
   end
 
-  bench "group by with tuple" do
-    bench_context |> Utils.partition_pids(48)
+  bench "group by" do
+    bench_context |> Utils.group_by(&:erlang.phash2(&1, 48))
   end
 
-  bench "manifold send" do
-    Manifold.send(bench_context, :hello)
+  bench "partition_pids" do
+    bench_context |> Utils.partition_pids(48)
   end
 
 
