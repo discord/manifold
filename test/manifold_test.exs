@@ -38,7 +38,7 @@ defmodule ManifoldTest do
         message -> send(me, message)
       end
     end
-    Manifold.send([pid], message)
+    Manifold.send(pid, message)
     assert_receive ^message
   end
 
