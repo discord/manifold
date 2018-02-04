@@ -24,6 +24,7 @@ defmodule Manifold do
   ## Client
 
   @spec send([pid | nil] | pid | nil, term) :: :ok
+  def send([pid], message), do: send(pid, message)
   def send(pids, message) when is_list(pids) do
     pids
       |> Utils.group_by(fn
