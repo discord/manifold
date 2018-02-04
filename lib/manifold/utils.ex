@@ -25,9 +25,14 @@ defmodule Manifold.Utils do
   end
 
   defp do_partition_pids([pid | pids], partitions, pids_by_partition) do
-    partition = :erlang.phash2(pid, partitions)
+    partition = partition_for(pid, partitions)
     pids_in_partition = elem(pids_by_partition, partition)
     do_partition_pids(pids, partitions, put_elem(pids_by_partition, partition, [pid | pids_in_partition]))
   end
   defp do_partition_pids([], _partitions, pids_by_partition), do: pids_by_partition
+
+  @spec partition_for(pid, integer) :: integer
+  def partition_for(pid, partitions) do
+    :erlang.phash2(pid, partitions)
+  end
 end

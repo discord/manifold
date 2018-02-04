@@ -58,6 +58,12 @@ defmodule Manifold.Partitioner do
     {:reply, :error, state}
   end
 
+  # Specialize handling cast to a single pid.
+  def handle_cast({:send, [pid], message}, state) do
+    partition = Utils.partition_for(pid, tuple_size(state))
+    Worker.send(elem(state, partition), [pid], message)
+    {:noreply, state}
+  end
   def handle_cast({:send, pids, message}, state) do
     partitions = tuple_size(state)
     pids_by_partition = Utils.partition_pids(pids, partitions)
