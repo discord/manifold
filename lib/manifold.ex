@@ -26,15 +26,11 @@ defmodule Manifold do
   @spec send([pid | nil] | pid | nil, term) :: :ok
   def send([pid], message), do: send(pid, message)
   def send(pids, message) when is_list(pids) do
-    pids
-      |> Utils.group_by(fn
-        nil -> nil
-        pid -> node(pid)
-      end)
-      |> Enum.each(fn
-        {nil, _pids} -> :ok
-        {node, pids} -> Partitioner.send({Partitioner, node}, pids, message)
-      end)
+    grouped_by = Utils.group_by(fn
+      nil -> nil
+      pid -> node(pid)
+    end)
+    for {node, pids} <- grouped_by, node != nil, do: Partitioner.send({Partitioner, node}, pids, message)
   end
   def send(pid, message) when is_pid(pid), do: Partitioner.send({Partitioner, node(pid)}, [pid], message)
   def send(nil, message), do: :ok
