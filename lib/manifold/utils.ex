@@ -6,7 +6,7 @@ defmodule Manifold.Utils do
   A faster version of Enum.group_by with less bells and whistles.
   """
   @spec group_by([pid], key_fun) :: groups
-  def group_by(pids, key_fun), do: group_by(pids, key_fun, Map.new)
+  def group_by(pids, key_fun), do: group_by(pids, key_fun, %{})
 
   @spec group_by([pid], key_fun, groups) :: groups
   def group_by([pid | pids], key_fun, groups) do
