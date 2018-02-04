@@ -74,7 +74,7 @@ defmodule Manifold.Partitioner do
     state = state
       |> Tuple.to_list
       |> Enum.map(fn
-        ^pid -> nil
+        ^pid -> Worker.start_link()
         pid -> pid
       end)
       |> List.to_tuple
