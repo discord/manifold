@@ -23,7 +23,7 @@ defmodule Manifold do
 
   ## Client
 
-  @spec send([pid], term) :: :ok
+  @spec send([pid | nil] | pid | nil, term) :: :ok
   def send(pids, message) when is_list(pids) do
     pids
       |> Utils.group_by(fn
@@ -35,9 +35,6 @@ defmodule Manifold do
         {node, pids} -> Partitioner.send({Partitioner, node}, pids, message)
       end)
   end
-
-  @spec send(pid, term) :: :ok
-  def send(pid, message) do
-    __MODULE__.send([pid], message)
-  end
+  def send(pid, message) when is_pid(pid), do: Partitioner.send({Partitioner, node(pid)}, [pid], message)
+  def send(nil, message), do: :ok
 end
