@@ -31,7 +31,7 @@ defmodule Manifold.Utils do
   end
   defp do_partition_pids([], _partitions, pids_by_partition), do: pids_by_partition
 
-  @"""
+  @doc """
   Computes the partition for a given pid using :erlang.phash2/2
   """
   @spec partition_for(pid, integer) :: integer
