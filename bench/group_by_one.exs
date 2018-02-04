@@ -1,10 +1,11 @@
-defmodule GroupByBench do
+defmodule GroupByOneBench do
   use Benchfella
 
   alias Manifold.Utils
 
   setup_all do
-    pids = for _ <- 0..5000, do: spawn_link &loop/0
+    pids = [spawn_link &loop/0]
+
     {:ok, pids}
   end
 
@@ -13,6 +14,7 @@ defmodule GroupByBench do
       _ -> loop()
     end
   end
+
 
   bench "group by 48" do
     bench_context
@@ -43,6 +45,4 @@ defmodule GroupByBench do
     bench_context
     |> Utils.partition_pids(8)
   end
-
-
 end

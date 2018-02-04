@@ -1,4 +1,4 @@
-defmodule WorkerSendBenches do
+defmodule WorkerSendOneBenches do
   use Benchfella
 
   alias Manifold.Utils
@@ -26,8 +26,8 @@ defmodule WorkerSendBenches do
 
 
   setup_all do
-    workers = (for _ <- 0..15, do: Worker.start_link() |> elem(1)) |> List.to_tuple
-    pids = for _ <- 0..200, do: spawn_link &loop/0
+    workers = (for _ <- 0..47, do: Worker.start_link() |> elem(1)) |> List.to_tuple
+    pids = [spawn_link &loop/0]
 
     pids_by_partition = Utils.partition_pids(pids, tuple_size(workers))
     pids_by_partition_map = Utils.group_by(pids, &Utils.partition_for(&1, tuple_size(workers)))
