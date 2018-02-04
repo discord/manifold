@@ -46,6 +46,7 @@ defmodule Manifold.Partitioner do
     end
     {:reply, children, state}
   end
+
   def handle_call(:count_children, _from, state) do
     {:reply, [
       specs: 1,
@@ -54,6 +55,7 @@ defmodule Manifold.Partitioner do
       workers: tuple_size(state)
     ], state}
   end
+
   def handle_call(_message, _from, state) do
     {:reply, :error, state}
   end
@@ -64,12 +66,14 @@ defmodule Manifold.Partitioner do
     Worker.send(elem(state, partition), [pid], message)
     {:noreply, state}
   end
+
   def handle_cast({:send, pids, message}, state) do
     partitions = tuple_size(state)
     pids_by_partition = Utils.partition_pids(pids, partitions)
     do_send(message, pids_by_partition, state, 0, partitions)
     {:noreply, state}
   end
+
   def handle_cast(_message, state) do
     {:noreply, state}
   end
@@ -87,6 +91,7 @@ defmodule Manifold.Partitioner do
 
     {:noreply, state}
   end
+
   def handle_info(_message, state) do
     {:noreply, state}
   end
