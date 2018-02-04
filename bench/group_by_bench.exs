@@ -4,7 +4,7 @@ defmodule GroupByBench do
   alias Manifold.Utils
 
   setup_all do
-    pids = for _ <- 0..1000 do
+    pids = for _ <- 0..5000 do
       spawn_link &loop/0
     end
 
@@ -17,12 +17,28 @@ defmodule GroupByBench do
     end
   end
 
-  bench "group by" do
+  bench "group by 48" do
     bench_context |> Utils.group_by(&:erlang.phash2(&1, 48))
   end
 
-  bench "partition_pids" do
+  bench "partition_pids 48" do
     bench_context |> Utils.partition_pids(48)
+  end
+
+  bench "group by 24" do
+    bench_context |> Utils.group_by(&:erlang.phash2(&1, 24))
+  end
+
+  bench "partition_pids 24" do
+    bench_context |> Utils.partition_pids(24)
+  end
+
+  bench "group by 8" do
+    bench_context |> Utils.group_by(&:erlang.phash2(&1, 8))
+  end
+
+  bench "partition_pids 8" do
+    bench_context |> Utils.partition_pids(8)
   end
 
 

@@ -14,9 +14,12 @@ defmodule Manifold.Worker do
   end
 
   ## Server Callbacks
-
+  def handle_cast({:send, [pid], message}, state) do
+    send(pid, message)
+    {:noreply, state}
+  end
   def handle_cast({:send, pids, message}, state) do
-    Enum.each(pids, &send(&1, message))
+    for pid <- pids, do: send(pid, message)
     {:noreply, state}
   end
 
