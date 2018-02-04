@@ -21,7 +21,9 @@ defmodule Manifold.Mixfile do
   end
 
   defp deps do
-    []
+    [
+      {:benchfella, "~> 0.3.0"}
+    ]
   end
 
   def package do

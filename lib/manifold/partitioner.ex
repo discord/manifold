@@ -31,7 +31,11 @@ defmodule Manifold.Partitioner do
     # Set optimal process flags
     Process.flag(:trap_exit, true)
     Process.flag(:message_queue_data, :off_heap)
-    {:ok, Tuple.duplicate(nil, partitions)}
+    workers = for _ <- 0..partitions do
+      {:ok, pid} = Worker.start_link()
+      pid
+    end
+    {:ok, List.to_tuple(workers)}
   end
 
   def terminate(_reason, _state), do: :ok
@@ -55,13 +59,9 @@ defmodule Manifold.Partitioner do
   end
 
   def handle_cast({:send, pids, message}, state) do
-    state = pids
-      |> Utils.group_by(&:erlang.phash2(&1, tuple_size(state)))
-      |> Enum.reduce(state, fn ({partition, pids}, state) ->
-        {worker_pid, state} = get_worker_pid(partition, state)
-        Worker.send(worker_pid, pids, message)
-        state
-      end)
+    partitions = tuple_size(state)
+    pids_by_partition = Utils.partition_pids(pids, partitions)
+    do_send(message, pids_by_partition, state, 0, partitions)
     {:noreply, state}
   end
   def handle_cast(_message, state) do
@@ -85,15 +85,12 @@ defmodule Manifold.Partitioner do
     {:noreply, state}
   end
 
-  ## Private
-
-  defp get_worker_pid(partition, state) do
-    case elem(state, partition) do
-      nil ->
-        {:ok, pid} = Worker.start_link
-        {pid, put_elem(state, partition, pid)}
-      pid ->
-        {pid, state}
+  defp do_send(_message, _pids_by_partition, _workers, partitions, partitions), do: :ok
+  defp do_send(message, pids_by_partition, workers, partition, partitions) do
+    pids = elem(pids_by_partition, partition)
+    if pids != [] do
+      Worker.send(elem(workers, partition), pids, message)
     end
+    do_send(message, pids_by_partition, workers, partition + 1, partitions)
   end
 end
