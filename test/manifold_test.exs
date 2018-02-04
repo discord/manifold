@@ -18,7 +18,7 @@ defmodule ManifoldTest do
     end
   end
 
-  test "send one" do
+  test "send to list of one" do
     me = self()
     message = :hello
     pid = spawn_link fn ->
@@ -27,6 +27,35 @@ defmodule ManifoldTest do
       end
     end
     Manifold.send([pid], message)
+    assert_receive ^message
+  end
+
+  test "send to one" do
+    me = self()
+    message = :hello
+    pid = spawn_link fn ->
+      receive do
+        message -> send(me, message)
+      end
+    end
+    Manifold.send([pid], message)
+    assert_receive ^message
+  end
+
+  test "send to nil" do
+    assert Manifold.send([nil], :hi) == :ok
+    assert Manifold.send(nil, :hi) == :ok
+  end
+
+  test "send with nil in list wont blow up" do
+    me = self()
+    message = :hello
+    pid = spawn_link fn ->
+      receive do
+        message -> send(me, message)
+      end
+    end
+    Manifold.send([nil, pid, nil], message)
     assert_receive ^message
   end
 end
