@@ -58,4 +58,20 @@ defmodule ManifoldTest do
     Manifold.send([nil, pid, nil], message)
     assert_receive ^message
   end
+
+  test "send with pinned process" do
+    me = self()
+    message = :hello
+    pid = spawn_link fn ->
+      receive do
+        message -> send(me, message)
+      end
+    end
+    assert Process.get(:manifold_partitioner) == nil
+    Manifold.set_partitioner_key("hello")
+    assert Process.get(:manifold_partitioner) == Manifold.Partitioner
+
+    Manifold.send([nil, pid, nil], message)
+    assert_receive ^message
+  end
 end
