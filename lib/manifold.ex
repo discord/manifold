@@ -38,8 +38,17 @@ defmodule Manifold do
   def send(pid, message) when is_pid(pid), do: Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
   def send(nil, _message), do: :ok
 
+  def set_partitioner_key(key) do
+    Process.put(:manifold_partitioner_key, Utils.hash(key))
+  end
+
   def current_partitioner() do
-    partitioner_for(self())
+    partitioner_key = Process.get(:manifold_partitioner_key)
+    if partitioner_key == nil do
+      partitioner_for(self())
+    else
+      partitioner_for(rem(partitioner_key, @online_partitioners))
+    end
   end
 
   def partitioner_for(pid) when is_pid(pid) do
