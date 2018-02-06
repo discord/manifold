@@ -39,15 +39,20 @@ defmodule Manifold do
   def send(nil, _message), do: :ok
 
   def set_partitioner_key(key) do
-    Process.put(:manifold_partitioner_key, Utils.hash(key))
+    partitioner = key
+    |> Utils.hash
+    |> rem(@online_partitioners)
+    |> partitioner_for
+
+    Process.put(:manifold_partitioner, partitioner)
   end
 
   def current_partitioner() do
-    partitioner_key = Process.get(:manifold_partitioner_key)
-    if partitioner_key == nil do
-      partitioner_for(self())
-    else
-      partitioner_for(rem(partitioner_key, @online_partitioners))
+    case Process.get(:manifold_partitioner) do
+      nil ->
+        partitioner_for(self())
+      partitioner ->
+        partitioner
     end
   end
 
