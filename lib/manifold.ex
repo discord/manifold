@@ -53,7 +53,7 @@ defmodule Manifold do
   def partitioner_for(0), do: Manifold.Partitioner
   for partitioner_id <- (1..@max_partitioners - 1) do
     def partitioner_for(unquote(partitioner_id)) do
-      unquote(:"Manifold.Partitioner#{partitioner_id}")
+      unquote(:"Manifold.Partitioner_#{partitioner_id}")
     end
   end
 end
