@@ -66,12 +66,17 @@ defmodule ManifoldTest do
       receive do
         message -> send(me, message)
       end
+      receive do
+        message -> send(me, message)
+      end
     end
     assert Process.get(:manifold_partitioner) == nil
     Manifold.set_partitioner_key("hello")
     assert Process.get(:manifold_partitioner) == Manifold.Partitioner
 
     Manifold.send([nil, pid, nil], message)
+    Manifold.send(pid, message)
+    assert_receive ^message
     assert_receive ^message
   end
 end
