@@ -4,7 +4,7 @@ defmodule Manifold do
   alias Manifold.{Partitioner, Utils}
 
   @max_partitioners 32
-  @online_partitioners min(Application.get_env(:manifold, :online_partitioners, 1), @max_partitioners)
+  @partitioners min(Application.get_env(:manifold, :partitioners, 1), @max_partitioners)
   @workers_per_partitioner Application.get_env(:manifold, :workers_per_partitioner, System.schedulers_online)
 
   ## OTP
@@ -12,7 +12,7 @@ defmodule Manifold do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    children = for partitioner_id <- 0..(@online_partitioners - 1) do
+    children = for partitioner_id <- 0..(@partitioners - 1) do
       Partitioner.child_spec(@workers_per_partitioner, [name: partitioner_for(partitioner_id)])
     end
 
@@ -40,9 +40,9 @@ defmodule Manifold do
 
   def set_partitioner_key(key) do
     partitioner = key
-    |> Utils.hash
-    |> rem(@online_partitioners)
-    |> partitioner_for
+    |> Utils.hash()
+    |> rem(@partitioners)
+    |> partitioner_for()
 
     Process.put(:manifold_partitioner, partitioner)
   end
@@ -58,7 +58,7 @@ defmodule Manifold do
 
   def partitioner_for(pid) when is_pid(pid) do
     pid
-    |> Utils.partition_for(@online_partitioners)
+    |> Utils.partition_for(@partitioners)
     |> partitioner_for
   end
 
