@@ -38,4 +38,11 @@ defmodule Manifold.Utils do
   def partition_for(pid, partitions) do
     :erlang.phash2(pid, partitions)
   end
+
+  @spec hash(atom | binary | integer) :: integer
+  def hash(key) when is_binary(key) do
+    <<_ :: binary-size(8), value :: unsigned-little-integer-size(64)>> = :erlang.md5(key)
+    value
+  end
+  def hash(key), do: hash("#{key}")
 end
