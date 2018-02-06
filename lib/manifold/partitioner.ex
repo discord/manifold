@@ -12,7 +12,7 @@ defmodule Manifold.Partitioner do
   @spec child_spec(Keyword.t) :: tuple
   def child_spec(partitions, opts \\ []) do
     import Supervisor.Spec, warn: false
-    supervisor(__MODULE__, [partitions, opts])
+    supervisor(__MODULE__, [partitions, opts], id: Keyword.get(opts, :name, __MODULE__))
   end
 
   @spec start_link(Number.t, Keyword.t) :: GenServer.on_start
