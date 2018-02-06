@@ -4,7 +4,7 @@ defmodule Manifold do
   alias Manifold.{Partitioner, Utils}
 
   @max_partitioners 32
-  @online_partitioners Application.get_env(:manifold, :online_partitioners, 1)
+  @online_partitioners min(Application.get_env(:manifold, :online_partitioners, 1), @max_partitioners)
   @workers_per_partitioner Application.get_env(:manifold, :workers_per_partitioner, System.schedulers_online)
 
   ## OTP
