@@ -43,7 +43,7 @@ Manifold.send([self(), self()], :hello)
 ```
 
 ### Configuration
-Manifold takes a single configuration option, which sets the module it dispatches to to actually call send. The default
+Manifold takes a single configuration option, which sets the module it dispatches to actually call send. The default
 is GenServer. To set this variable, add the following to your `config.exs`:
 
 ```elixir
