@@ -29,7 +29,7 @@ defmodule Manifold.Worker do
 
   def handle_info(:hibernate, nil) do
     schedule_next_hibernate()
-    {:noreply, state, :hibernate}
+    {:noreply, nil, :hibernate}
   end
 
   defp schedule_next_hibernate() do
