@@ -35,6 +35,7 @@ defmodule Manifold.Partitioner do
       {:ok, pid} = Worker.start_link()
       pid
     end
+    schedule_next_hibernate()
     {:ok, List.to_tuple(workers)}
   end
 
@@ -92,6 +93,11 @@ defmodule Manifold.Partitioner do
     {:noreply, state}
   end
 
+  def handle_info(:hibernate, state) do
+    schedule_next_hibernate()
+    {:noreply, state, :hibernate}
+  end
+
   def handle_info(_message, state) do
     {:noreply, state}
   end
@@ -103,5 +109,9 @@ defmodule Manifold.Partitioner do
       Worker.send(elem(workers, partition), pids, message)
     end
     do_send(message, pids_by_partition, workers, partition + 1, partitions)
+  end
+
+  defp schedule_next_hibernate() do
+    Process.send_after(self(), :hibernate, Utils.next_hibernate_delay())
   end
 end
