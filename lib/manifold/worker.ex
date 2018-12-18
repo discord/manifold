@@ -1,6 +1,6 @@
 defmodule Manifold.Worker do
   use GenServer
-  use Manifold.Utils
+  alias Manifold.Utils
 
   ## Client
   @spec start_link :: GenServer.on_start
