@@ -1,5 +1,6 @@
 defmodule Manifold.Worker do
   use GenServer
+  alias Manifold.Utils
 
   ## Client
   @spec start_link :: GenServer.on_start
@@ -10,7 +11,10 @@ defmodule Manifold.Worker do
 
   ## Server Callbacks
   @spec init([]) :: {:ok, nil}
-  def init([]), do: {:ok, nil}
+  def init([]) do
+    schedule_next_hibernate()
+    {:ok, nil}
+  end
 
   def handle_cast({:send, [pid], message}, nil) do
     send(pid, message)
@@ -23,4 +27,13 @@ defmodule Manifold.Worker do
   end
 
   def handle_cast(_message, nil), do: {:noreply, nil}
+
+  def handle_info(:hibernate, nil) do
+    schedule_next_hibernate()
+    {:noreply, nil, :hibernate}
+  end
+
+  defp schedule_next_hibernate() do
+    Process.send_after(self(), :hibernate, Utils.next_hibernate_delay())
+  end
 end

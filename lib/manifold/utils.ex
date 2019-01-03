@@ -45,4 +45,15 @@ defmodule Manifold.Utils do
     value
   end
   def hash(key), do: hash("#{key}")
+  
+  @doc """
+  Gets the next delay at which we should attempt to hibernate a worker or partitioner process.
+  """
+  @spec next_hibernate_delay() :: integer 
+  def next_hibernate_delay() do
+    hibernate_delay = Application.get_env(:manifold, :hibernate_delay, 60_000)
+    hibernate_jitter = Application.get_env(:manifold, :hibernate_jitter, 30_000)
+
+    hibernate_delay + :rand.uniform(hibernate_jitter)
+  end
 end
