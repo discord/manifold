@@ -9,7 +9,11 @@ defmodule Manifold.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps(),
-      package: package()
+      package: package(),
+      # https://github.com/whitfin/local-cluster#setup
+      aliases: [
+        test: "test --no-start"
+      ]
     ]
   end
 
@@ -22,7 +26,8 @@ defmodule Manifold.Mixfile do
 
   defp deps do
     [
-      {:benchfella, "~> 0.3.0", only: :test}
+      {:benchfella, "~> 0.3.0", only: :test},
+      {:local_cluster, "~> 1.2", only: [:test]}
     ]
   end
 

@@ -24,9 +24,10 @@ defmodule Manifold do
 
   ## Client
 
-  @spec send([pid | nil] | pid | nil, term) :: :ok
-  def send([pid], message), do: __MODULE__.send(pid, message)
-  def send(pids, message) when is_list(pids) do
+  @spec send([pid | nil] | pid | nil, term, :offload | :no_offload) :: :ok
+  def send(pid, message, send_mode \\ :no_offload)
+  def send([pid], message, send_mode), do: __MODULE__.send(pid, message, send_mode)
+  def send(pids, message, :no_offload) when is_list(pids) do
     partitioner_name = current_partitioner()
     grouped_by = Utils.group_by(pids, fn
       nil -> nil
@@ -35,8 +36,14 @@ defmodule Manifold do
     for {node, pids} <- grouped_by, node != nil, do: Partitioner.send({partitioner_name, node}, pids, message)
     :ok
   end
-  def send(pid, message) when is_pid(pid), do: Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
-  def send(nil, _message), do: :ok
+  def send(pid, message, :no_offload) when is_pid(pid), do: Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
+  def send(pids, message, :offload) when is_list(pids) do
+    Partitioner.offload_send(current_partitioner(), pids, message)
+  end
+  def send(pid, message, :offload) when is_pid(pid) do
+    Partitioner.offload_send(current_partitioner(), [pid], message)
+  end
+  def send(nil, _message, _send_mode), do: :ok
 
   def set_partitioner_key(key) do
     partitioner = key

@@ -14,7 +14,7 @@ defmodule ManifoldTest do
     end
     Manifold.send(pids, message)
     for pid <- pids do
-      assert_receive {^pid, ^message}
+      assert_receive {^pid, ^message},  1000
     end
   end
 
@@ -79,4 +79,27 @@ defmodule ManifoldTest do
     assert_receive ^message
     assert_receive ^message
   end
+
+  test "many pids using :offload" do
+    [receiver] = LocalCluster.start_nodes(:manifold, 1, [
+      files: [
+        __ENV__.file
+      ]
+    ])
+
+    me = self()
+    message = {:hello, me}
+    pids = for _ <- 0..10000 do
+      Node.spawn_link(receiver, fn ->
+        receive do
+          {:hello, sender} -> send(sender, {self(), {:hello, sender}})
+        end
+      end)
+    end
+    Manifold.send(pids, message, :offload)
+    for pid <- pids do
+      assert_receive {^pid, ^message},  1000
+    end
+  end
+
 end

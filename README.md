@@ -25,6 +25,10 @@ were finally able to keep up with their message queues.
 
 ![Packets Out Reduction](priv/packets.png)
 
+There is an optional `:offload` send mode which offloads the `send/2` calls to one of the local `Manifold.Partitioner` processes
+to send the messages to the remote Manifold nodes. These `Manifold.Partitioner` processes would otherwise be unused on the send
+side.
+
 ## Usage
 
 Add it to `mix.exs`
@@ -40,6 +44,13 @@ Then just use it like the normal `send/2` except it can also take a list of PIDs
 ```elixir
 Manifold.send(self(), :hello)
 Manifold.send([self(), self()], :hello)
+```
+
+To use the optional `:offload` send mode:
+
+```elixir
+Manifold.send(self(), :hello, :offload)
+Manifold.send([self(), self()], :hello, :offload)
 ```
 
 ### Configuration
