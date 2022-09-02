@@ -25,9 +25,10 @@ were finally able to keep up with their message queues.
 
 ![Packets Out Reduction](priv/packets.png)
 
-There is an optional `:offload` send mode which offloads the `send/2` calls to one of the local `Manifold.Partitioner` processes
-to send the messages to the remote Manifold nodes. These `Manifold.Partitioner` processes would otherwise be unused on the send
-side.
+There is an optional `:offload` send mode which offloads on the send side the `send/2` calls to the receiving nodes to a pool of
+`Manifold.Sender` processes. To maintain the linearizability guaranteed by `send/2`, the same calling process always offloads the
+work to the same `Manifold.Sender` process. The size of the `Manifold.Sender` pool is configurable. This send mode is optional
+because its benefits are workload dependent. For some workloads, it might degrade overall performance. Use with caution.
 
 ## Usage
 
@@ -46,11 +47,17 @@ Manifold.send(self(), :hello)
 Manifold.send([self(), self()], :hello)
 ```
 
-To use the optional `:offload` send mode:
+To use the optional `:offload` send mode, make sure the `Manifold.Sender` pool size is appropriate for the
+workload:
 
 ```elixir
-Manifold.send(self(), :hello, :offload)
-Manifold.send([self(), self()], :hello, :offload)
+config :manifold, senders: <size>
+```
+
+Then:
+
+```elixir
+Manifold.send(self(), :hello, send_mode: :offload)
 ```
 
 ### Configuration

@@ -25,11 +25,6 @@ defmodule Manifold.Partitioner do
     @gen_module.cast(pid, {:send, pids, message})
   end
 
-  @spec offload_send(pid, [pid], term) :: :ok
-  def offload_send(pid, pids, message) do
-    @gen_module.cast(pid, {:offload_send, pid, pids, message})
-  end
-
   ## Server Callbacks
 
   def init(partitions) do
@@ -77,15 +72,6 @@ defmodule Manifold.Partitioner do
     partitions = tuple_size(state)
     pids_by_partition = Utils.partition_pids(pids, partitions)
     do_send(message, pids_by_partition, state, 0, partitions)
-    {:noreply, state}
-  end
-
-  def handle_cast({:offload_send, partitioner_name, pids, message}, state) do
-    grouped_by = Utils.group_by(pids, fn
-      nil -> nil
-      pid -> node(pid)
-    end)
-    for {node, pids} <- grouped_by, node != nil, do: Manifold.Partitioner.send({partitioner_name, node}, pids, message)
     {:noreply, state}
   end
 

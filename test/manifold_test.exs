@@ -96,7 +96,7 @@ defmodule ManifoldTest do
         end
       end)
     end
-    Manifold.send(pids, message, :offload)
+    Manifold.send(pids, message, send_mode: :offload)
     for pid <- pids do
       assert_receive {^pid, ^message},  1000
     end
