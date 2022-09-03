@@ -62,9 +62,16 @@ defmodule Manifold do
     end
   end
 
-  def send(pid, message, _options) when is_pid(pid) do
-    # Don't offload for a single pid. It doesn't really help the caller.
-    Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
+  def send(pid, message, options) when is_pid(pid) do
+    case options[:send_mode] do
+      :offload ->
+        # To maintain linearizability guaranteed by send/2, we have to send
+        # it to the sender process, even for a single receiving pid.
+        Sender.send(current_sender(), current_partitioner(), [pid], message)
+
+      nil ->
+        Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
+    end
   end
 
   def send(nil, _message, _options), do: :ok

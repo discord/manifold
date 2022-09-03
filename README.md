@@ -25,10 +25,14 @@ were finally able to keep up with their message queues.
 
 ![Packets Out Reduction](priv/packets.png)
 
-There is an optional `:offload` send mode which offloads on the send side the `send/2` calls to the receiving nodes to a pool of
-`Manifold.Sender` processes. To maintain the linearizability guaranteed by `send/2`, the same calling process always offloads the
-work to the same `Manifold.Sender` process. The size of the `Manifold.Sender` pool is configurable. This send mode is optional
-because its benefits are workload dependent. For some workloads, it might degrade overall performance. Use with caution.
+There is an optional and experimental `:offload` send mode which offloads on the send side the `send/2` calls to the receiving
+nodes to a pool of `Manifold.Sender` processes. To maintain the linearizability guaranteed by `send/2`, the same calling process
+always offloads the work to the same `Manifold.Sender` process. The size of the `Manifold.Sender` pool is configurable. This send
+mode is optional because its benefits are workload dependent. For some workloads, it might degrade overall performance. Use with
+caution.
+
+Caution: To maintain the linearizability guaranteed by `send/2`, do not mix calls to Manifold with and without offloading. Mixed
+use of the two different send modes to the same set of receiving nodes would break the linearizability guarantee.
 
 ## Usage
 
@@ -47,7 +51,7 @@ Manifold.send(self(), :hello)
 Manifold.send([self(), self()], :hello)
 ```
 
-To use the optional `:offload` send mode, make sure the `Manifold.Sender` pool size is appropriate for the
+To use the experimental `:offload` send mode, make sure the `Manifold.Sender` pool size is appropriate for the
 workload:
 
 ```elixir
