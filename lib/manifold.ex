@@ -45,7 +45,7 @@ defmodule Manifold do
       :offload ->
         Sender.send(current_sender(), current_partitioner(), pids, message)
 
-      nil ->
+      _ ->
         partitioner_name = current_partitioner()
 
         grouped_by =
@@ -69,7 +69,7 @@ defmodule Manifold do
         # it to the sender process, even for a single receiving pid.
         Sender.send(current_sender(), current_partitioner(), [pid], message)
 
-      nil ->
+      _ ->
         Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
     end
   end

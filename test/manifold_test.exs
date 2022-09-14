@@ -59,6 +59,18 @@ defmodule ManifoldTest do
     assert_receive ^message
   end
 
+  test "send with unknown send_mode option wont blow up" do
+    me = self()
+    message = :hello
+    pid = spawn_link fn ->
+      receive do
+        message -> send(me, message)
+      end
+    end
+    Manifold.send(pid, message, send_mode: :bad_option)
+    assert_receive ^message
+  end
+
   test "send with pinned process" do
     me = self()
     message = :hello
