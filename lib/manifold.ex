@@ -36,6 +36,22 @@ defmodule Manifold do
 
   ## Client
 
+  @spec valid_send_options?(Keyword.t()) :: boolean()
+  def valid_send_options?(options) when is_list(options) do
+    valid_options = [
+      {:send_mode, :offload},
+    ]
+
+    # Keywords could have duplicate keys, in which case the first key wins.
+    Keyword.keys(options)
+    |> Enum.dedup()
+    |> Enum.reduce(true, fn key, acc -> acc and {key, options[key]} in valid_options end)
+  end
+
+  def valid_send_options?(_options) do
+    false
+  end
+
   @spec send([pid | nil] | pid | nil, term, send_mode: :offload) :: :ok
   def send(pid, message, options \\ [])
   def send([pid], message, options), do: __MODULE__.send(pid, message, options)
