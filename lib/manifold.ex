@@ -45,7 +45,7 @@ defmodule Manifold do
     # Keywords could have duplicate keys, in which case the first key wins.
     Keyword.keys(options)
     |> Enum.dedup()
-    |> Enum.reduce(true, fn key, acc -> acc && {key, options[key]} in valid_options end)
+    |> Enum.reduce(true, fn key, acc -> acc and {key, options[key]} in valid_options end)
   end
 
   def valid_send_options?(_options) do
