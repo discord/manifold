@@ -7,10 +7,10 @@ defmodule ManifoldTest do
     assert Manifold.valid_send_options?(send_mode: :offload)
     assert Manifold.valid_send_options?(send_mode: :offload, send_mode: :bad)
 
-    assert !Manifold.valid_send_options?(send_mode: :bad, send_mode: :offload)
-    assert !Manifold.valid_send_options?(unknown: :bad)
-    assert !Manifold.valid_send_options?(:junk)
-    assert !Manifold.valid_send_options?({:junk, :junk})
+    refute Manifold.valid_send_options?(send_mode: :bad, send_mode: :offload)
+    refute Manifold.valid_send_options?(unknown: :bad)
+    refute Manifold.valid_send_options?(:junk)
+    refute Manifold.valid_send_options?({:junk, :junk})
   end
 
   test "many pids" do
