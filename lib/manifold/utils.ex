@@ -56,4 +56,12 @@ defmodule Manifold.Utils do
 
     hibernate_delay + :rand.uniform(hibernate_jitter)
   end
+
+  @spec pack_message(mode :: atom(), message :: term()) :: term()
+  def pack_message(:binary, message), do: {:manifold_binary, :erlang.term_to_binary(message)}
+  def pack_message(_mode, message), do: message
+
+  @spec unpack_message(message :: term()) :: term()
+  def unpack_message({:manifold_binary, binary}), do: :erlang.binary_to_term(binary)
+  def unpack_message(message), do: message
 end

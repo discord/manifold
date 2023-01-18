@@ -29,6 +29,22 @@ defmodule ManifoldTest do
     end
   end
 
+  test "pack_mode option" do
+    me = self()
+    message = :hello
+    pids = for _ <- 0..10000 do
+      spawn_link fn ->
+        receive do
+          message -> send(me, {self(), message})
+        end
+      end
+    end
+    Manifold.send(pids, message, pack_mode: :binary)
+    for pid <- pids do
+      assert_receive {^pid, ^message},  1000
+    end
+  end
+
   test "send to list of one" do
     me = self()
     message = :hello

@@ -57,6 +57,8 @@ defmodule Manifold do
   def send([pid], message, options), do: __MODULE__.send(pid, message, options)
 
   def send(pids, message, options) when is_list(pids) do
+    message = Utils.pack_message(options[:pack_mode], message)
+
     case options[:send_mode] do
       :offload ->
         Sender.send(current_sender(), current_partitioner(), pids, message)
