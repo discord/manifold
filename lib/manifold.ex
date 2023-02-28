@@ -89,6 +89,10 @@ defmodule Manifold do
       :offload ->
         # To maintain linearizability guaranteed by send/2, we have to send
         # it to the sender process, even for a single receiving pid.
+        #
+        # Since we know we are only sending to a single pid, there's no
+        # performance benefit to packing the message, so we will always send as
+        # raw etf.
         Sender.send(current_sender(), current_partitioner(), [pid], message, :etf)
 
       nil ->
