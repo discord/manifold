@@ -20,9 +20,9 @@ defmodule Manifold.Partitioner do
     GenServer.start_link(__MODULE__, partitions, opts)
   end
 
-  @spec send(pid, [pid], term) :: :ok
-  def send(pid, pids, message) do
-    @gen_module.cast(pid, {:send, pids, message})
+  @spec send(partitioner :: GenServer.server(), pids :: [pid()], message :: term()) :: :ok
+  def send(partitioner, pids, message) do
+    @gen_module.cast(partitioner, {:send, pids, message})
   end
 
   ## Server Callbacks

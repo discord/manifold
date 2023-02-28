@@ -18,9 +18,9 @@ defmodule Manifold.Sender do
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  @spec send(pid, atom, [pid], term) :: :ok
-  def send(pid, partitioner, pids, message) do
-    @gen_module.cast(pid, {:send, partitioner, pids, message})
+  @spec send(sender :: GenServer.server(), partitioner :: GenServer.server(), pids :: [pid()], message :: term(), pack_mode :: Manifold.pack_mode()) :: :ok
+  def send(sender, partitioner, pids, message, pack_mode) do
+    @gen_module.cast(sender, {:send, partitioner, pids, message, pack_mode})
   end
 
   ## Server Callbacks
@@ -32,7 +32,9 @@ defmodule Manifold.Sender do
     {:ok, nil}
   end
 
-  def handle_cast({:send, partitioner, pids, message}, nil) do
+  def handle_cast({:send, partitioner, pids, message, pack_mode}, nil) do
+    message = Utils.pack_message(pack_mode, message)
+
     grouped_by =
       Utils.group_by(pids, fn
         nil -> nil

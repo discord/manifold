@@ -10,10 +10,7 @@ defmodule Manifold.Mixfile do
       start_permanent: Mix.env == :prod,
       deps: deps(),
       package: package(),
-      # https://github.com/whitfin/local-cluster#setup
-      aliases: [
-        test: "test --no-start"
-      ]
+      elixirc_paths: elixirc_paths(Mix.env())
     ]
   end
 
@@ -26,9 +23,16 @@ defmodule Manifold.Mixfile do
 
   defp deps do
     [
-      {:benchfella, "~> 0.3.0", only: :test},
-      {:local_cluster, "~> 1.2", only: [:test]}
+      {:benchfella, "~> 0.3.0", only: [:dev, :test], runtime: false},
     ]
+  end
+
+  defp elixirc_paths(:test) do
+    elixirc_paths(:any) ++ ["test/support"]
+  end
+
+  defp elixirc_paths(_) do
+    ["lib"]
   end
 
   def package do

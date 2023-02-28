@@ -29,6 +29,22 @@ defmodule ManifoldTest do
     end
   end
 
+  test "pack_mode option" do
+    me = self()
+    message = :hello
+    pids = for _ <- 0..10000 do
+      spawn_link fn ->
+        receive do
+          message -> send(me, {self(), message})
+        end
+      end
+    end
+    Manifold.send(pids, message, pack_mode: :binary)
+    for pid <- pids do
+      assert_receive {^pid, ^message},  1000
+    end
+  end
+
   test "send to list of one" do
     me = self()
     message = :hello
@@ -92,23 +108,14 @@ defmodule ManifoldTest do
   end
 
   test "many pids using :offload" do
-    [receiver] =
-      LocalCluster.start_nodes(:manifold, 1,
-        files: [
-          __ENV__.file
-        ]
-      )
+    {:ok, child, _} = ChildNode.start_link(:manifold, :child)
 
     me = self()
     message = {:hello, me}
 
     pids =
       for _ <- 0..10000 do
-        Node.spawn_link(receiver, fn ->
-          receive do
-            {:hello, sender} -> send(sender, {self(), {:hello, sender}})
-          end
-        end)
+        Node.spawn_link(child, Receiver, :hello_handler, [])
       end
 
     Manifold.send(pids, message, send_mode: :offload)
@@ -131,36 +138,17 @@ defmodule ManifoldTest do
   end
 
   test "send/2 linearization guarantees with :offload" do
-    [receiver] =
-      LocalCluster.start_nodes(:manifold, 1,
-        files: [
-          __ENV__.file
-        ]
-      )
+    {:ok, child, _} = ChildNode.start_link(:manifold, :child)
 
     # Set up several receiving pids, but only the first pid echos
     # the message back to the sender...
     pids =
       for n <- 0..2 do
-        loop =
-          if n == 0 do
-            fn f ->
-              receive do
-                {:hello, sender, n} ->
-                  send(sender, {self(), {:hello, sender, n}})
-                  f.(f)
-              end
-            end
-          else
-            fn f ->
-              receive do
-                {:hello, _sender, _n} ->
-                  f.(f)
-              end
-            end
-          end
-
-        Node.spawn_link(receiver, fn -> loop.(loop) end)
+        if n == 0 do
+          Node.spawn_link(child, Receiver, :hello_reply_loop, [])
+        else
+          Node.spawn_link(child, Receiver, :hello_noop_loop, [])
+        end
       end
 
     me = self()
