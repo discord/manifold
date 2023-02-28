@@ -7,6 +7,10 @@ defmodule Manifold do
 
   @type pack_mode :: :binary | :etf | nil
 
+  @type pack_mode_option :: {:pack_mode, pack_mode()}
+  @type send_mode_option :: {:send_mode, :offload}
+  @type option :: pack_mode_option() | send_mode_option()
+
   @max_partitioners 32
   @partitioners min(Application.get_env(:manifold, :partitioners, 1), @max_partitioners)
   @workers_per_partitioner Application.get_env(:manifold, :workers_per_partitioner, System.schedulers_online)
@@ -56,7 +60,7 @@ defmodule Manifold do
     false
   end
 
-  @spec send([pid | nil] | pid | nil, term, send_mode: :offload) :: :ok
+  @spec send([pid() | nil] | pid() | nil, message :: term(), options :: [option()]) :: :ok
   def send(pid, message, options \\ [])
   def send([pid], message, options), do: __MODULE__.send(pid, message, options)
 
