@@ -5,6 +5,8 @@ defmodule Manifold do
   alias Manifold.Sender
   alias Manifold.Utils
 
+  @type pack_mode :: :binary | :etf | nil
+
   @max_partitioners 32
   @partitioners min(Application.get_env(:manifold, :partitioners, 1), @max_partitioners)
   @workers_per_partitioner Application.get_env(:manifold, :workers_per_partitioner, System.schedulers_online)
@@ -39,6 +41,8 @@ defmodule Manifold do
   @spec valid_send_options?(Keyword.t()) :: boolean()
   def valid_send_options?(options) when is_list(options) do
     valid_options = [
+      {:pack_mode, :binary},
+      {:pack_mode, :etf},
       {:send_mode, :offload},
     ]
 
@@ -57,13 +61,13 @@ defmodule Manifold do
   def send([pid], message, options), do: __MODULE__.send(pid, message, options)
 
   def send(pids, message, options) when is_list(pids) do
-    message = Utils.pack_message(options[:pack_mode], message)
-
     case options[:send_mode] do
       :offload ->
-        Sender.send(current_sender(), current_partitioner(), pids, message)
+        Sender.send(current_sender(), current_partitioner(), pids, message, options[:pack_mode])
 
       nil ->
+        message = Utils.pack_message(options[:pack_mode], message)
+
         partitioner_name = current_partitioner()
 
         grouped_by =
@@ -85,7 +89,7 @@ defmodule Manifold do
       :offload ->
         # To maintain linearizability guaranteed by send/2, we have to send
         # it to the sender process, even for a single receiving pid.
-        Sender.send(current_sender(), current_partitioner(), [pid], message)
+        Sender.send(current_sender(), current_partitioner(), [pid], message, :etf)
 
       nil ->
         Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
