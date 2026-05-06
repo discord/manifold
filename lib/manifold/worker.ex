@@ -17,11 +17,13 @@ defmodule Manifold.Worker do
   end
 
   def handle_cast({:send, [pid], message}, nil) do
+    message = Utils.unpack_message(message)
     send(pid, message)
     {:noreply, nil}
   end
 
   def handle_cast({:send, pids, message}, nil) do
+    message = Utils.unpack_message(message)
     for pid <- pids, do: send(pid, message)
     {:noreply, nil}
   end
