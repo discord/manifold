@@ -28,6 +28,19 @@ defmodule Manifold do
     )
   end
 
+  ## Config Macros
+
+  defmacrop config_key(name) do
+    :"Config.For.Manifold.#{name}"
+  end
+
+  defmacrop lookup_config(name) do
+    quote do
+      key = config_key(unquote(name))
+      :persistent_term.get(key)
+    end
+  end
+
   ## Client
 
   @spec valid_send_options?(Keyword.t()) :: boolean()
@@ -182,16 +195,6 @@ defmodule Manifold do
     :persistent_term.put(config_key(:partitioners), partitioners)
     :persistent_term.put(config_key(:workers_per_partitioner), workers_per_partitioner)
     :persistent_term.put(config_key(:senders), senders)
-  end
-
-  defp lookup_config(name) do
-    name
-    |> config_key()
-    |> :persistent_term.get()
-  end
-
-  defp config_key(name) do
-    :"Config.For.Manifold.#{name}"
   end
 
   defp partitioner_children() do
