@@ -3,14 +3,16 @@ defmodule Manifold.Sender do
 
   alias Manifold.Utils
 
-  @gen_module Application.get_env(:manifold, :gen_module, GenServer)
+  @gen_module Application.compile_env(:manifold, :gen_module, GenServer)
 
   ## Client
 
   @spec child_spec(Keyword.t()) :: tuple
   def child_spec(opts \\ []) do
-    import Supervisor.Spec, warn: false
-    supervisor(__MODULE__, [:ok, opts], id: Keyword.get(opts, :name, __MODULE__))
+    %{
+      id: Keyword.get(opts, :name, __MODULE__),
+      start: {__MODULE__, :start_link, [:ok, opts]}
+    }
   end
 
   @spec start_link(:ok, Keyword.t()) :: GenServer.on_start()
@@ -18,7 +20,13 @@ defmodule Manifold.Sender do
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  @spec send(sender :: GenServer.server(), partitioner :: GenServer.server(), pids :: [pid()], message :: term(), pack_mode :: Manifold.pack_mode()) :: :ok
+  @spec send(
+          sender :: GenServer.server(),
+          partitioner :: GenServer.server(),
+          pids :: [pid()],
+          message :: term(),
+          pack_mode :: Manifold.pack_mode()
+        ) :: :ok
   def send(sender, partitioner, pids, message, pack_mode) do
     @gen_module.cast(sender, {:send, partitioner, pids, message, pack_mode})
   end
