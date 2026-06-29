@@ -4,10 +4,10 @@ defmodule Manifold.Mixfile do
   def project do
     [
       app: :manifold,
-      version: "1.6.0",
-      elixir: "~> 1.5",
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
+      version: "1.7.0",
+      elixir: "~> 1.15",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
       elixirc_paths: elixirc_paths(Mix.env())
@@ -17,13 +17,13 @@ defmodule Manifold.Mixfile do
   def application do
     [
       applications: [:logger],
-      mod: {Manifold, []},
+      mod: {Manifold, []}
     ]
   end
 
   defp deps do
     [
-      {:benchfella, "~> 0.3.0", only: [:dev, :test], runtime: false},
+      {:benchfella, "~> 0.3.0", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -43,8 +43,8 @@ defmodule Manifold.Mixfile do
       licenses: ["MIT"],
       files: ["lib/*", "mix.exs", "README*", "LICENSE*"],
       links: %{
-        "GitHub" => "https://github.com/discordapp/manifold",
-      },
+        "GitHub" => "https://github.com/discordapp/manifold"
+      }
     ]
   end
 end

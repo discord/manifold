@@ -12,28 +12,16 @@ defmodule Manifold do
   @type option :: pack_mode_option() | send_mode_option()
 
   @max_partitioners 32
-  @partitioners min(Application.get_env(:manifold, :partitioners, 1), @max_partitioners)
-  @workers_per_partitioner Application.get_env(:manifold, :workers_per_partitioner, System.schedulers_online)
-
   @max_senders 128
-  @senders min(Application.get_env(:manifold, :senders, System.schedulers_online), @max_senders)
 
   ## OTP
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    partitioners =
-      for partitioner_id <- 0..(@partitioners - 1) do
-        Partitioner.child_spec(@workers_per_partitioner, name: partitioner_for(partitioner_id))
-      end
+    setup_config()
 
-    senders =
-      for sender_id <- 0..(@senders - 1) do
-        Sender.child_spec(name: sender_for(sender_id))
-      end
-
-    Supervisor.start_link(partitioners ++ senders,
+    Supervisor.start_link(partitioner_children() ++ sender_children(),
       strategy: :one_for_one,
       max_restarts: 10,
       name: __MODULE__.Supervisor
@@ -47,7 +35,7 @@ defmodule Manifold do
     valid_options = [
       {:pack_mode, :binary},
       {:pack_mode, :etf},
-      {:send_mode, :offload},
+      {:send_mode, :offload}
     ]
 
     # Keywords could have duplicate keys, in which case the first key wins.
@@ -107,10 +95,13 @@ defmodule Manifold do
   def send(nil, _message, _options), do: :ok
 
   def set_partitioner_key(key) do
-    partitioner = key
-    |> Utils.hash()
-    |> rem(@partitioners)
-    |> partitioner_for()
+    partitioners = lookup_config(:partitioners)
+
+    partitioner =
+      key
+      |> Utils.hash()
+      |> rem(partitioners)
+      |> partitioner_for()
 
     Process.put(:manifold_partitioner, partitioner)
   end
@@ -119,31 +110,37 @@ defmodule Manifold do
     case Process.get(:manifold_partitioner) do
       nil ->
         partitioner_for(self())
+
       partitioner ->
         partitioner
     end
   end
 
   def partitioner_for(pid) when is_pid(pid) do
+    partitioners = lookup_config(:partitioners)
+
     pid
-    |> Utils.partition_for(@partitioners)
+    |> Utils.partition_for(partitioners)
     |> partitioner_for
   end
 
   # The 0th partitioner does not have a number in it's process name for backwards compatibility
   # purposes.
   def partitioner_for(0), do: Manifold.Partitioner
-  for partitioner_id <- (1..@max_partitioners - 1) do
+
+  for partitioner_id <- 1..(@max_partitioners - 1) do
     def partitioner_for(unquote(partitioner_id)) do
       unquote(:"Manifold.Partitioner_#{partitioner_id}")
     end
   end
 
   def set_sender_key(key) do
+    senders = lookup_config(:senders)
+
     sender =
       key
       |> Utils.hash()
-      |> rem(@senders)
+      |> rem(senders)
       |> sender_for()
 
     Process.put(:manifold_sender, sender)
@@ -160,14 +157,57 @@ defmodule Manifold do
   end
 
   def sender_for(pid) when is_pid(pid) do
+    senders = lookup_config(:senders)
+
     pid
-    |> Utils.partition_for(@senders)
+    |> Utils.partition_for(senders)
     |> sender_for
   end
 
   for sender_id <- 0..(@max_senders - 1) do
     def sender_for(unquote(sender_id)) do
       unquote(:"Manifold.Sender_#{sender_id}")
+    end
+  end
+
+  defp setup_config() do
+    partitioners = min(Application.get_env(:manifold, :partitioners, 1), @max_partitioners)
+
+    workers_per_partitioner =
+      Application.get_env(:manifold, :workers_per_partitioner, System.schedulers_online())
+
+    senders =
+      min(Application.get_env(:manifold, :senders, System.schedulers_online()), @max_senders)
+
+    :persistent_term.put(config_key(:partitioners), partitioners)
+    :persistent_term.put(config_key(:workers_per_partitioner), workers_per_partitioner)
+    :persistent_term.put(config_key(:senders), senders)
+  end
+
+  defp lookup_config(name) do
+    name
+    |> config_key()
+    |> :persistent_term.get()
+  end
+
+  defp config_key(name) do
+    :"Config.For.Manifold.#{name}"
+  end
+
+  defp partitioner_children() do
+    partitioners = lookup_config(:partitioners)
+    workers_per_partitioner = lookup_config(:workers_per_partitioner)
+
+    for partitioner_id <- 0..(partitioners - 1) do
+      Partitioner.child_spec(workers_per_partitioner, name: partitioner_for(partitioner_id))
+    end
+  end
+
+  defp sender_children() do
+    senders = lookup_config(:senders)
+
+    for sender_id <- 0..(senders - 1) do
+      Sender.child_spec(name: sender_for(sender_id))
     end
   end
 end
