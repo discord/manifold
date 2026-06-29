@@ -76,14 +76,37 @@ Manifold.send(self(), :hello, send_mode: :offload)
 
 ### Configuration
 
-Manifold takes a single configuration option, which sets the module it dispatches to actually call send. The default
-is GenServer. To set this variable, add the following to your `config.exs`:
+Manifold reads the following application environment options, which can be set in your `config.exs`. All of them are
+optional; Manifold applies sensible runtime defaults when they are not set, so only configure the ones you want to
+override:
 
 ```elixir
-config :manifold, gen_module: MyGenModule
+config :manifold,
+  gen_module: MyGenModule,
+  partitioners: 1,
+  workers_per_partitioner: 8,
+  senders: 8
 ```
 
-In the above instance, `MyGenModule` must define a `cast/2` function that matches the types of `GenServer.cast`.
+#### gen_module
+
+Sets the module that Manifold dispatches to in order to actually call send. The default is `GenServer`. The configured
+module must define a `cast/2` function that matches the types of `GenServer.cast/2`.
+
+#### partitioners
+
+The number of `Manifold.Partitioner` processes to run per node. Defaults to `1` and is capped at `32`. Increasing this
+spreads partitioning work across more processes so the partitioner does not become a bottleneck.
+
+#### workers_per_partitioner
+
+The number of child workers each partitioner uses to send to the actual PIDs. Defaults to `System.schedulers_online()`
+(the number of online schedulers, typically the number of cores).
+
+#### senders
+
+The size of the `Manifold.Sender` pool used when sending with `send_mode: :offload` (see [send_mode](#send_mode)).
+Defaults to `System.schedulers_online()` and is capped at `128`.
 
 
 ## License
