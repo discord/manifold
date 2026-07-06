@@ -13,7 +13,8 @@ defmodule Manifold.Partitioner do
   def child_spec(partitions, opts \\ []) do
     %{
       id: Keyword.get(opts, :name, __MODULE__),
-      start: {__MODULE__, :start_link, [partitions, opts]}
+      start: {__MODULE__, :start_link, [partitions, opts]},
+      type: :supervisor
     }
   end
 

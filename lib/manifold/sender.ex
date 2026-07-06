@@ -11,7 +11,8 @@ defmodule Manifold.Sender do
   def child_spec(opts \\ []) do
     %{
       id: Keyword.get(opts, :name, __MODULE__),
-      start: {__MODULE__, :start_link, [:ok, opts]}
+      start: {__MODULE__, :start_link, [:ok, opts]},
+      type: :supervisor
     }
   end
 
