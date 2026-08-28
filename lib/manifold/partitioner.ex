@@ -23,9 +23,14 @@ defmodule Manifold.Partitioner do
     GenServer.start_link(__MODULE__, partitions, opts)
   end
 
-  @spec send(partitioner :: GenServer.server(), pids :: [pid()], message :: term()) :: :ok
-  def send(partitioner, pids, message) do
-    @gen_module.cast(partitioner, {:send, pids, message})
+  @spec send(
+          partitioner :: GenServer.server(),
+          pids :: [pid()],
+          message :: term(),
+          options :: [Manifold.option()]
+        ) :: :ok
+  def send(partitioner, pids, message, options) do
+    @gen_module.cast(partitioner, {:send, pids, message, options})
   end
 
   ## Server Callbacks
@@ -71,16 +76,16 @@ defmodule Manifold.Partitioner do
   end
 
   # Specialize handling cast to a single pid.
-  def handle_cast({:send, [pid], message}, state) do
+  def handle_cast({:send, [pid], message, options}, state) do
     partition = Utils.partition_for(pid, tuple_size(state))
-    Worker.send(elem(state, partition), [pid], message)
+    Worker.send(elem(state, partition), [pid], message, options)
     {:noreply, state}
   end
 
-  def handle_cast({:send, pids, message}, state) do
+  def handle_cast({:send, pids, message, options}, state) do
     partitions = tuple_size(state)
     pids_by_partition = Utils.partition_pids(pids, partitions)
-    do_send(message, pids_by_partition, state, 0, partitions)
+    do_send(message, pids_by_partition, state, 0, partitions, options)
     {:noreply, state}
   end
 
@@ -112,16 +117,16 @@ defmodule Manifold.Partitioner do
     {:noreply, state}
   end
 
-  defp do_send(_message, _pids_by_partition, _workers, partitions, partitions), do: :ok
+  defp do_send(_message, _pids_by_partition, _workers, partitions, partitions, _options), do: :ok
 
-  defp do_send(message, pids_by_partition, workers, partition, partitions) do
+  defp do_send(message, pids_by_partition, workers, partition, partitions, options) do
     pids = elem(pids_by_partition, partition)
 
     if pids != [] do
-      Worker.send(elem(workers, partition), pids, message)
+      Worker.send(elem(workers, partition), pids, message, options)
     end
 
-    do_send(message, pids_by_partition, workers, partition + 1, partitions)
+    do_send(message, pids_by_partition, workers, partition + 1, partitions, options)
   end
 
   defp schedule_next_hibernate() do

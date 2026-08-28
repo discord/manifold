@@ -6,8 +6,12 @@ defmodule ManifoldTest do
     assert Manifold.valid_send_options?([])
     assert Manifold.valid_send_options?(send_mode: :offload)
     assert Manifold.valid_send_options?(send_mode: :offload, send_mode: :bad)
+    assert Manifold.valid_send_options?(noconnect: true)
+    assert Manifold.valid_send_options?(nosuspend: true)
 
     refute Manifold.valid_send_options?(send_mode: :bad, send_mode: :offload)
+    refute Manifold.valid_send_options?(noconnect: :no_autoconnect)
+    refute Manifold.valid_send_options?(nosuspend: :nonblocking)
     refute Manifold.valid_send_options?(unknown: :bad)
     refute Manifold.valid_send_options?(:junk)
     refute Manifold.valid_send_options?({:junk, :junk})
@@ -16,43 +20,74 @@ defmodule ManifoldTest do
   test "many pids" do
     me = self()
     message = :hello
-    pids = for _ <- 0..10000 do
-      spawn_link fn ->
-        receive do
-          message -> send(me, {self(), message})
-        end
+
+    pids =
+      for _ <- 0..10000 do
+        spawn_link(fn ->
+          receive do
+            message -> send(me, {self(), message})
+          end
+        end)
       end
-    end
+
     Manifold.send(pids, message)
+
     for pid <- pids do
-      assert_receive {^pid, ^message},  1000
+      assert_receive {^pid, ^message}, 1000
     end
   end
 
   test "pack_mode option" do
     me = self()
     message = :hello
-    pids = for _ <- 0..10000 do
-      spawn_link fn ->
-        receive do
-          message -> send(me, {self(), message})
-        end
+
+    pids =
+      for _ <- 0..10000 do
+        spawn_link(fn ->
+          receive do
+            message -> send(me, {self(), message})
+          end
+        end)
       end
-    end
+
     Manifold.send(pids, message, pack_mode: :binary)
+
     for pid <- pids do
-      assert_receive {^pid, ^message},  1000
+      assert_receive {^pid, ^message}, 1000
+    end
+  end
+
+  test "noconnect and nosuspend options" do
+    me = self()
+    message = :hello
+
+    pids =
+      for _ <- 0..10000 do
+        spawn_link(fn ->
+          receive do
+            message -> send(me, {self(), message})
+          end
+        end)
+      end
+
+    Manifold.send(pids, message, noconnect: true, nosuspend: true)
+
+    for pid <- pids do
+      assert_receive {^pid, ^message}, 1000
     end
   end
 
   test "send to list of one" do
     me = self()
     message = :hello
-    pid = spawn_link fn ->
-      receive do
-        message -> send(me, message)
-      end
-    end
+
+    pid =
+      spawn_link(fn ->
+        receive do
+          message -> send(me, message)
+        end
+      end)
+
     Manifold.send([pid], message)
     assert_receive ^message
   end
@@ -60,11 +95,14 @@ defmodule ManifoldTest do
   test "send to one" do
     me = self()
     message = :hello
-    pid = spawn_link fn ->
-      receive do
-        message -> send(me, message)
-      end
-    end
+
+    pid =
+      spawn_link(fn ->
+        receive do
+          message -> send(me, message)
+        end
+      end)
+
     Manifold.send(pid, message)
     assert_receive ^message
   end
@@ -77,11 +115,14 @@ defmodule ManifoldTest do
   test "send with nil in list wont blow up" do
     me = self()
     message = :hello
-    pid = spawn_link fn ->
-      receive do
-        message -> send(me, message)
-      end
-    end
+
+    pid =
+      spawn_link(fn ->
+        receive do
+          message -> send(me, message)
+        end
+      end)
+
     Manifold.send([nil, pid, nil], message)
     assert_receive ^message
   end
@@ -89,14 +130,18 @@ defmodule ManifoldTest do
   test "send with pinned process" do
     me = self()
     message = :hello
-    pid = spawn_link fn ->
-      receive do
-        message -> send(me, message)
-      end
-      receive do
-        message -> send(me, message)
-      end
-    end
+
+    pid =
+      spawn_link(fn ->
+        receive do
+          message -> send(me, message)
+        end
+
+        receive do
+          message -> send(me, message)
+        end
+      end)
+
     assert Process.get(:manifold_partitioner) == nil
     Manifold.set_partitioner_key("hello")
     assert Process.get(:manifold_partitioner) == Manifold.Partitioner

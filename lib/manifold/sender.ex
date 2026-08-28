@@ -26,10 +26,10 @@ defmodule Manifold.Sender do
           partitioner :: GenServer.server(),
           pids :: [pid()],
           message :: term(),
-          pack_mode :: Manifold.pack_mode()
+          options :: [Manifold.option()]
         ) :: :ok
-  def send(sender, partitioner, pids, message, pack_mode) do
-    @gen_module.cast(sender, {:send, partitioner, pids, message, pack_mode})
+  def send(sender, partitioner, pids, message, options) do
+    @gen_module.cast(sender, {:send, partitioner, pids, message, options})
   end
 
   ## Server Callbacks
@@ -41,8 +41,8 @@ defmodule Manifold.Sender do
     {:ok, nil}
   end
 
-  def handle_cast({:send, partitioner, pids, message, pack_mode}, nil) do
-    message = Utils.pack_message(pack_mode, message)
+  def handle_cast({:send, partitioner, pids, message, options}, nil) do
+    message = Utils.pack_message(options[:pack_mode], message)
 
     grouped_by =
       Utils.group_by(pids, fn
@@ -51,7 +51,7 @@ defmodule Manifold.Sender do
       end)
 
     for {node, pids} <- grouped_by, node != nil do
-      Manifold.Partitioner.send({partitioner, node}, pids, message)
+      Manifold.Partitioner.send({partitioner, node}, pids, message, options)
     end
 
     {:noreply, nil}

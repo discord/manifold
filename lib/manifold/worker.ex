@@ -3,11 +3,11 @@ defmodule Manifold.Worker do
   alias Manifold.Utils
 
   ## Client
-  @spec start_link :: GenServer.on_start
+  @spec start_link :: GenServer.on_start()
   def start_link, do: GenServer.start_link(__MODULE__, [])
 
-  @spec send(pid, [pid], term) :: :ok
-  def send(pid, pids, message), do: GenServer.cast(pid, {:send, pids, message})
+  @spec send(pid, [pid], term, [Manifold.option()]) :: :ok
+  def send(pid, pids, message, options), do: GenServer.cast(pid, {:send, pids, message, options})
 
   ## Server Callbacks
   @spec init([]) :: {:ok, nil}
@@ -16,15 +16,19 @@ defmodule Manifold.Worker do
     {:ok, nil}
   end
 
-  def handle_cast({:send, [pid], message}, nil) do
+  def handle_cast({:send, [pid], message, options}, nil) do
     message = Utils.unpack_message(message)
-    send(pid, message)
+    send_opts = if options[:noconnect], do: [:noconnect], else: []
+    send_opts = if options[:nosuspend], do: [:nosuspend | send_opts], else: send_opts
+    Process.send(pid, message, send_opts)
     {:noreply, nil}
   end
 
-  def handle_cast({:send, pids, message}, nil) do
+  def handle_cast({:send, pids, message, options}, nil) do
     message = Utils.unpack_message(message)
-    for pid <- pids, do: send(pid, message)
+    send_opts = if options[:noconnect], do: [:noconnect], else: []
+    send_opts = if options[:nosuspend], do: [:nosuspend | send_opts], else: send_opts
+    for pid <- pids, do: Process.send(pid, message, send_opts)
     {:noreply, nil}
   end
 

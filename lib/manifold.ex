@@ -9,7 +9,11 @@ defmodule Manifold do
 
   @type pack_mode_option :: {:pack_mode, pack_mode()}
   @type send_mode_option :: {:send_mode, :offload}
-  @type option :: pack_mode_option() | send_mode_option()
+  @type nonblocking_send :: boolean() | nil
+  @type noconnect_option :: {:noconnect, nonblocking_send()}
+  @type nosuspend_option :: {:nosuspend, nonblocking_send()}
+  @type option ::
+          pack_mode_option() | send_mode_option() | noconnect_option() | nosuspend_option()
 
   @max_partitioners 32
   @max_senders 128
@@ -48,7 +52,9 @@ defmodule Manifold do
     valid_options = [
       {:pack_mode, :binary},
       {:pack_mode, :etf},
-      {:send_mode, :offload}
+      {:send_mode, :offload},
+      {:noconnect, true},
+      {:nosuspend, true}
     ]
 
     # Keywords could have duplicate keys, in which case the first key wins.
@@ -68,7 +74,7 @@ defmodule Manifold do
   def send(pids, message, options) when is_list(pids) do
     case options[:send_mode] do
       :offload ->
-        Sender.send(current_sender(), current_partitioner(), pids, message, options[:pack_mode])
+        Sender.send(current_sender(), current_partitioner(), pids, message, options)
 
       nil ->
         message = Utils.pack_message(options[:pack_mode], message)
@@ -83,7 +89,7 @@ defmodule Manifold do
 
         for {node, pids} <- grouped_by,
             node != nil,
-            do: Partitioner.send({partitioner_name, node}, pids, message)
+            do: Partitioner.send({partitioner_name, node}, pids, message, options)
 
         :ok
     end
@@ -98,10 +104,11 @@ defmodule Manifold do
         # Since we know we are only sending to a single pid, there's no
         # performance benefit to packing the message, so we will always send as
         # raw etf.
-        Sender.send(current_sender(), current_partitioner(), [pid], message, :etf)
+        options = Keyword.put(options, :pack_mode, :etf)
+        Sender.send(current_sender(), current_partitioner(), [pid], message, options)
 
       nil ->
-        Partitioner.send({current_partitioner(), node(pid)}, [pid], message)
+        Partitioner.send({current_partitioner(), node(pid)}, [pid], message, options)
     end
   end
 
